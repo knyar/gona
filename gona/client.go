@@ -38,7 +38,7 @@ type Client struct {
 // GetKeyFromEnv is a simple function to try to yank the value for
 // "VR_API_KEY" from the environment
 func GetKeyFromEnv() string {
-	return os.Getenv("VR_API_KEY")
+	return os.Getenv("NA_API_KEY")
 }
 
 // NewClient is the main entrypoint for instantiating a Client struct.
