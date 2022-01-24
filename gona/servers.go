@@ -14,7 +14,7 @@ type Server struct {
 	PrimaryIPv4  string `json:"ip"`
 	PrimaryIPv6  string `json:"ipv6"`
 	PlanID       int    `json:"plan_id,string"`
-	PkgID        int    `json:"pkg_id,string"`
+	Package		 string	`json:"package"`
 	LocationID   int    `json:"location_id,string"`
 	OSID         int    `json:"os_id,string"`
 	ServerStatus string `json:"status"`

@@ -55,7 +55,7 @@ func (c *Client) UpdateSSHKey(id int, name, key string) (SSHKey, error) {
 	putData, _ := json.Marshal(values)
 
 	var sshKey SSHKey
-	if err := c.put("server/sshkeys"+strconv.Itoa(id), putData, &sshKey); err != nil {
+	if err := c.put("server/sshkeys/"+strconv.Itoa(id), putData, &sshKey); err != nil {
 		return SSHKey{}, err
 	}
 	return sshKey, nil
@@ -63,7 +63,7 @@ func (c *Client) UpdateSSHKey(id int, name, key string) (SSHKey, error) {
 
 // DeleteSSHKey deletes a key
 func (c *Client) DeleteSSHKey(id int) error {
-	if err := c.delete("/server/sshkeys"+strconv.Itoa(id), nil, nil); err != nil {
+	if err := c.delete("/server/sshkeys/"+strconv.Itoa(id), nil, nil); err != nil {
 		return err
 	}
 	return nil
