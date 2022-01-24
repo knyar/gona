@@ -11,12 +11,13 @@ type Server struct {
 	Name         string `json:"fqdn"`
 	ID           int    `json:"mbpkgid,string"`
 	OS           string `json:"os"`
+	OSID         int    `json:"os_id,string"`
 	PrimaryIPv4  string `json:"ip"`
 	PrimaryIPv6  string `json:"ipv6"`
 	PlanID       int    `json:"plan_id,string"`
 	Package		 string	`json:"package"`
+	Location	 string	`json:"city"`
 	LocationID   int    `json:"location_id,string"`
-	OSID         int    `json:"os_id,string"`
 	ServerStatus string `json:"status"`
 	PowerStatus  string `json:"state"`
 }
