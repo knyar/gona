@@ -8,18 +8,21 @@ import (
 
 // Server struct defines what a VPS looks like
 type Server struct {
-	Name         string `json:"fqdn"`
-	ID           int    `json:"mbpkgid,string"`
-	OS           string `json:"os"`
-	OSID         int    `json:"os_id,string"`
-	PrimaryIPv4  string `json:"ip"`
-	PrimaryIPv6  string `json:"ipv6"`
-	PlanID       int    `json:"plan_id,string"`
-	Package		 string	`json:"package"`
-	Location	 string	`json:"city"`
-	LocationID   int    `json:"location_id,string"`
-	ServerStatus string `json:"status"`
-	PowerStatus  string `json:"state"`
+	Name                     string `json:"fqdn"`
+	ID                       int    `json:"mbpkgid,string"`
+	OS                       string `json:"os"`
+	OSID                     int    `json:"os_id,string"`
+	PrimaryIPv4              string `json:"ip"`
+	PrimaryIPv6              string `json:"ipv6"`
+	Plan                     string `json:"plan"`
+	PlanID                   int    `json:"plan_id,string"`
+	Package                  string `json:"package"`
+	PackageBilling           string `json:"package_billing"`
+	PackageBillingContractId string `json:"package_billing_contract_id"`
+	Location                 string `json:"city"`
+	LocationID               int    `json:"location_id,string"`
+	ServerStatus             string `json:"status"`
+	PowerStatus              string `json:"state"`
 }
 
 // ServerOptions struct defines some extra options including SSH Auth
@@ -85,13 +88,15 @@ func (c *Client) RebootServer(id int) error {
 }
 
 // CreateServer external method on Client to buy and build a new instance.
-func (c *Client) CreateServer(name, plan string, locationID, osID int, options *ServerOptions) (server Server, err error) {
+func (c *Client) CreateServer(s *Server, options *ServerOptions) (server Server, err error) {
 
 	values := map[string]string{
-		"plan":     plan,
-		"fqdn":     name,
-		"location": strconv.Itoa(locationID),
-		"image":    strconv.Itoa(osID),
+		"plan":                        s.Plan,
+		"fqdn":                        s.Name,
+		"location":                    strconv.Itoa(s.LocationID),
+		"image":                       strconv.Itoa(s.OSID),
+		"package_billing":             s.PackageBilling,
+		"package_billing_contract_id": s.PackageBillingContractId,
 	}
 
 	if options != nil {
