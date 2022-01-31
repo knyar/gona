@@ -2,4 +2,6 @@ module github.com/netactuate/gona
 
 go 1.13
 
-require github.com/hashicorp/terraform-plugin-sdk v1.7.0 // indirect
+require inet.af/netaddr v0.0.0-20211027220019-c74959edd3b6
+
+replace inet.af/netaddr => github.com/inetaf/netaddr v0.0.0-20211027220019-c74959edd3b6
