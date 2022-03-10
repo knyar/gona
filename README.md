@@ -419,6 +419,8 @@ type ServerOptions struct {
     SSHKeyID    int
     Password    string
     CloudConfig string
+    UserData    string
+    UserData64  string
 }
 ```
 ServerOptions struct defines some extra options including SSH Auth

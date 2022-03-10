@@ -30,6 +30,8 @@ type ServerOptions struct {
 	SSHKeyID    int
 	Password    string
 	CloudConfig string
+	UserData	string
+	UserData64	string
 }
 
 // JobID struct holds the current Job Id for what's being processed
@@ -109,6 +111,13 @@ func (c *Client) CreateServer(s *Server, options *ServerOptions) (server Server,
 		if options.CloudConfig != "" {
 			values["cloud_config"] = base64.StdEncoding.EncodeToString([]byte(options.CloudConfig))
 		}
+		if options.UserData64 != "" {
+			values["script_type"] = "user-data"
+			values["script_content"] = options.UserData64
+		} else if options.UserData != "" {
+			values["script_type"] = "user-data"
+			values["script_content"] = base64.StdEncoding.EncodeToString([]byte(options.UserData))
+		}
 	}
 
 	postData, _ := json.Marshal(values)
@@ -151,7 +160,13 @@ func (c *Client) ProvisionServer(name string, id, locationID, osID int, options 
 		if options.CloudConfig != "" {
 			values["cloud_config"] = base64.StdEncoding.EncodeToString([]byte(options.CloudConfig))
 		}
-
+		if options.UserData64 != "" {
+			values["script_type"] = "user-data"
+			values["script_content"] = options.UserData64
+		} else if options.UserData != "" {
+			values["script_type"] = "user-data"
+			values["script_content"] = base64.StdEncoding.EncodeToString([]byte(options.UserData))
+		}
 	}
 
 	postData, _ := json.Marshal(values)
