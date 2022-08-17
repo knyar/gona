@@ -19,7 +19,7 @@ import (
 
 // Version, BaseEndpoint, ContentType constants
 const (
-	Version      = "0.1.1"
+	Version      = "0.1.2"
 	BaseEndpoint = "https://vapi.netactuate.com/"
 	ContentType  = "application/json"
 )
@@ -41,10 +41,10 @@ func GetKeyFromEnv() string {
 	return os.Getenv("NA_API_KEY")
 }
 
-// NewClient is the main entrypoint for instantiating a Client struct.
+// NewClientCustom is the main entrypoint for instantiating a Client struct.
 // It takes your API Key as it's sole argument
 // and returns the Client struct ready to talk to the API
-func NewClient(apikey string) *Client {
+func NewClientCustom(apikey string, apiurl string) *Client {
 	useragent := "gona/" + Version
 	transport := &http.Transport{
 		TLSNextProto: make(
@@ -53,7 +53,7 @@ func NewClient(apikey string) *Client {
 	}
 	client := http.DefaultClient
 	client.Transport = transport
-	endpoint, _ := url.Parse(BaseEndpoint)
+	endpoint, _ := url.Parse(apiurl)
 
 	return &Client{
 		userAgent: useragent,
@@ -61,6 +61,12 @@ func NewClient(apikey string) *Client {
 		endPoint:  endpoint,
 		apiKey:    apikey,
 	}
+}
+
+// NewClient takes an apikey and calls NewClientCustom with the hardcoded
+// BaseEndpoint constant API URL
+func NewClient(apikey string) *Client {
+	return NewClientCustom(apikey, BaseEndpoint)
 }
 
 // apiPath is just a short internal function
