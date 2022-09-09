@@ -28,6 +28,7 @@ type Server struct {
 // ServerOptions struct defines some extra options including SSH Auth
 type ServerOptions struct {
 	SSHKeyID    int
+	SSHKey      string
 	Password    string
 	CloudConfig string
 	UserData	string
@@ -105,6 +106,9 @@ func (c *Client) CreateServer(s *Server, options *ServerOptions) (server Server,
 		if options.SSHKeyID != 0 {
 			values["ssh_key_id"] = strconv.Itoa(options.SSHKeyID)
 		}
+		if options.SSHKey != "" {
+			values["ssh_key"] = options.SSHKey
+		}
 		if options.Password != "" {
 			values["password"] = options.Password
 		}
@@ -143,7 +147,6 @@ func (c *Client) CancelServer(id int) error {
 }
 
 // ProvisionServer external method on Client to re-build an instance
-// This should not be used in Terraform as we will use CreateServer instead
 func (c *Client) ProvisionServer(name string, id, locationID, osID int, options *ServerOptions) (JobID, error) {
 
 	var jobid JobID
@@ -153,6 +156,9 @@ func (c *Client) ProvisionServer(name string, id, locationID, osID int, options 
 	if options != nil {
 		if options.SSHKeyID != 0 {
 			values["ssh_key_id"] = strconv.Itoa(options.SSHKeyID)
+		}
+		if options.SSHKey != "" {
+			values["ssh_key"] = options.SSHKey
 		}
 		if options.Password != "" {
 			values["password"] = options.Password
@@ -171,7 +177,7 @@ func (c *Client) ProvisionServer(name string, id, locationID, osID int, options 
 
 	postData, _ := json.Marshal(values)
 
-	if err := c.post("/cloud/server/"+strconv.Itoa(id), postData, &jobid); err != nil {
+	if err := c.post("/cloud/server/build/"+strconv.Itoa(id), postData, &jobid); err != nil {
 		return JobID{}, err
 	}
 
@@ -179,11 +185,20 @@ func (c *Client) ProvisionServer(name string, id, locationID, osID int, options 
 }
 
 // DeleteServer external method on Client to destroy an instance.
-// This should not be used in Terraform as we will use CancelServer instead.
 // This method requires apikey_allow_delete to be checked on the account
 func (c *Client) DeleteServer(id int) error {
 
 	if err := c.post("/cloud/server/delete/"+strconv.Itoa(id), nil, nil); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// UnlinkServer external method on Client to unlink a billing package from a location
+func (c *Client) UnlinkServer(id int) error {
+
+	if err := c.post("/cloud/server/unlink/"+strconv.Itoa(id), nil, nil); err != nil {
 		return err
 	}
 
