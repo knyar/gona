@@ -1,4 +1,4 @@
-// Package gona provides a simple golang interface to the HostVirtual
+// Package gona provides a simple golang interface to the NetActuate
 // Rest API at https://vapi.netactuate.com/
 package gona
 

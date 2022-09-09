@@ -7,7 +7,7 @@
 * [Index](#pkg-index)
 
 ## <a name="pkg-overview">Overview</a>
-Package gona provides a simple golang interface to the HostVirtual
+Package gona provides a simple golang interface to the NetActuate
 Rest API at <a href="https://vapi.netactuate.com/">https://vapi.netactuate.com/</a>
 
 
