@@ -83,7 +83,7 @@ Version, BaseEndpoint, ContentType constants
 func GetKeyFromEnv() string
 ```
 GetKeyFromEnv is a simple function to try to yank the value for
-"VR_API_KEY" from the environment
+"NA_API_KEY" from the environment
 
 
 
