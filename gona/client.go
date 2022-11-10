@@ -198,5 +198,5 @@ func (c *Client) do(req *http.Request, data any) error {
 		return nil
 	}
 
-	return fmt.Errorf("got an error response with code %d: %+v", resp.StatusCode, r)
+	return fmt.Errorf("got an error response on %s %s: code %d, response %+v", req.Method, req.URL, resp.StatusCode, r)
 }
