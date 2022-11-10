@@ -1,7 +1,5 @@
-module github.com/netactuate/gona
+module github.com/knyar/gona
 
-go 1.13
+go 1.19
 
-require inet.af/netaddr v0.0.0-20211027220019-c74959edd3b6
-
-replace inet.af/netaddr => github.com/inetaf/netaddr v0.0.0-20211027220019-c74959edd3b6
+require github.com/google/go-querystring v1.1.0

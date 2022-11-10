@@ -1,26 +1,25 @@
 // Package gona provides a simple golang interface to the NetActuate
-// Rest API at https://vapi.netactuate.com/
+// Rest API at https://vapi2.netactuate.com/
 package gona
 
 import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
-	"strconv"
 	"strings"
 )
 
 // Version, BaseEndpoint, ContentType constants
 const (
-	Version      = "0.1.3"
-	BaseEndpoint = "https://vapi.netactuate.com/"
+	Version      = "0.2.0"
+	BaseEndpoint = "https://vapi2.netactuate.com/api/"
 	ContentType  = "application/json"
 )
 
@@ -69,15 +68,6 @@ func NewClient(apikey string) *Client {
 	return NewClientCustom(apikey, BaseEndpoint)
 }
 
-// apiPath is just a short internal function
-// for forcing the prepending of / to the url
-func apiPath(path string) string {
-	if strings.HasPrefix(path, "/") {
-		return fmt.Sprintf("%s", path)
-	}
-	return fmt.Sprintf("/%s", path)
-}
-
 // apiKeyPath is just a short internal function for appending the key to the url
 func apiKeyPath(path, apiKey string) string {
 	if strings.Contains(path, "?") {
@@ -86,9 +76,16 @@ func apiKeyPath(path, apiKey string) string {
 	return path + "?key=" + apiKey
 }
 
+func (c *Client) debugLog(format string, v ...any) {
+	if os.Getenv("NA_API_DEBUG") == "" {
+		return
+	}
+	log.Printf("[DEBUG] "+format, v...)
+}
+
 // get internal method on Client struct for providing the HTTP GET call
 func (c *Client) get(path string, data interface{}) error {
-	req, err := c.newRequest("GET", apiPath(path), nil)
+	req, err := c.newRequest("GET", path, nil)
 	if err != nil {
 		return err
 	}
@@ -97,24 +94,23 @@ func (c *Client) get(path string, data interface{}) error {
 
 // post internal method on Client struct for providing the HTTP POST call
 func (c *Client) post(path string, values []byte, data interface{}) error {
+	c.debugLog("POST data for %s: %s", path, string(values))
 
-	fmt.Println(string(values))
-
-	req, err := c.newRequest("POST", apiPath(path), bytes.NewBuffer(values))
-
+	req, err := c.newRequest("POST", path, bytes.NewBuffer(values))
 	if err != nil {
 		return err
 	}
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	return c.do(req, data)
 }
 
 // put internal method on Client struct for providing the HTTP PUT call
 func (c *Client) put(path string, values []byte, data interface{}) error {
+	c.debugLog("PUT data for %s: %s", path, string(values))
 
-	fmt.Println(string(values))
-
-	req, err := c.newRequest("PUT", apiPath(path), bytes.NewBuffer(values))
+	req, err := c.newRequest("PUT", path, bytes.NewBuffer(values))
 
 	if err != nil {
 		return err
@@ -125,7 +121,7 @@ func (c *Client) put(path string, values []byte, data interface{}) error {
 // patch internal method on Client struct for providing the HTTP PATCH call
 func (c *Client) patch(path string, values url.Values, data interface{}) error {
 	req, err := c.newRequest(
-		"PATCH", apiPath(path), strings.NewReader(values.Encode()),
+		"PATCH", path, strings.NewReader(values.Encode()),
 	)
 	if err != nil {
 		return err
@@ -135,7 +131,7 @@ func (c *Client) patch(path string, values url.Values, data interface{}) error {
 
 // delete internal method on Client struct for providing the HTTP DELETE call
 func (c *Client) delete(path string, values url.Values, data interface{}) error {
-	req, err := c.newRequest("DELETE", apiPath(path), nil)
+	req, err := c.newRequest("DELETE", path, nil)
 	if err != nil {
 		return err
 	}
@@ -165,69 +161,42 @@ func (c *Client) newRequest(method string, path string, body io.Reader) (*http.R
 	req.Header.Add("User-Agent", c.userAgent)
 	req.Header.Add("Accept", ContentType)
 
+	c.debugLog("making a %s request to %s", method, url)
 	return req, nil
 
 }
 
-//do internal method on Client struct for making the HTTP calls
-func (c *Client) do(req *http.Request, data interface{}) error {
+type apiResponse struct {
+	Result  string `json:"result"`
+	Message string `json:"message"`
+	Data    any    `json:"data"`
+	Code    int    `json:"code"`
+}
 
-	var apiError error
-
+// do internal method on Client struct for making the HTTP calls
+func (c *Client) do(req *http.Request, data any) error {
 	resp, err := c.client.Do(req)
-
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
-
-	resp.Body.Close()
-
 	if err != nil {
 		return err
 	}
+	c.debugLog("got a response: %s", string(body))
 
-	if resp.StatusCode == http.StatusOK {
+	r := &apiResponse{
+		Data: data,
+	}
+	if err := json.Unmarshal(body, r); err != nil {
+		return fmt.Errorf("could not unmarshal response %q: %w", string(body), err)
+	}
 
-		//fmt.Println(string(body))
-		if data != nil {
-			if err := json.Unmarshal(body, data); err != nil {
-				return err
-			}
-		}
+	if resp.StatusCode == http.StatusOK && r.Code == http.StatusOK {
 		return nil
 	}
 
-	errorCodes := map[string]bool{
-		"401": true,
-		"500": true,
-	}
-
-	if errorCodes[strconv.Itoa(resp.StatusCode)] {
-
-		type Err struct {
-			Error struct {
-				Code    int    `json:"code"`
-				Message string `json:"message"`
-			} `json:"error"`
-		}
-
-		data := &Err{}
-
-		if err := json.Unmarshal(body, data); err != nil {
-			return err
-		}
-
-		fmt.Println(data.Error.Message)
-
-		apiError = errors.New(string(data.Error.Message))
-
-		return apiError
-
-	}
-
-	apiError = errors.New(string(body))
-
-	return apiError
+	return fmt.Errorf("got an error response with code %d: %+v", resp.StatusCode, r)
 }
