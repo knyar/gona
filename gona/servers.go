@@ -26,25 +26,12 @@ type Server struct {
 	Installed                int    `json:"installed"`
 }
 
-// ServerOptions struct defines some extra options including SSH Auth
-type ServerOptions struct {
-	SSHKeyID    int
-	SSHKey      string
-	Password    string
-	CloudConfig string
-	UserData    string
-	UserData64  string
-}
-
 // GetServers external method on Client to list your instances
 func (c *Client) GetServers() ([]Server, error) {
-
 	var serverList []Server
-
 	if err := c.get("cloud/servers", &serverList); err != nil {
 		return nil, err
 	}
-
 	return serverList, nil
 }
 
@@ -56,36 +43,7 @@ func (c *Client) GetServer(id int) (server Server, err error) {
 	return server, nil
 }
 
-// StartServer external method on Client to boot up an instance
-func (c *Client) StartServer(id int) error {
-
-	if err := c.post("cloud/server/start/"+strconv.Itoa(id), nil, nil); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// StopServer external method on Client to shut down an instance
-func (c *Client) StopServer(id int) error {
-
-	if err := c.post("cloud/server/shutdown/"+strconv.Itoa(id), nil, nil); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// RebootServer external method on Client to reboot an instance
-func (c *Client) RebootServer(id int) error {
-
-	if err := c.post("cloud/server/reboot/"+strconv.Itoa(id), nil, nil); err != nil {
-		return err
-	}
-
-	return nil
-}
-
+// CreateServerRequest is as set of parameters for a server creation call.
 type CreateServerRequest struct {
 	Plan                     string `url:"plan,omitempty"`
 	Location                 int    `url:"location,omitempty"`
@@ -100,6 +58,7 @@ type CreateServerRequest struct {
 	ScriptContent            string `url:"script_content,omitempty"`
 }
 
+// ServerBuild is a server creation response message.
 type ServerBuild struct {
 	ServerID int    `json:"mbpkgid"`
 	Status   string `json:"status"`
@@ -108,7 +67,6 @@ type ServerBuild struct {
 
 // CreateServer external method on Client to buy and build a new instance.
 func (c *Client) CreateServer(r *CreateServerRequest) (b ServerBuild, err error) {
-
 	values, err := query.Values(r)
 	if err != nil {
 		return b, err
@@ -124,19 +82,7 @@ func (c *Client) CreateServer(r *CreateServerRequest) (b ServerBuild, err error)
 	return b, nil
 }
 
-// CancelServer external method on Client to cancel/remove from billing an instance.
-// this method completely removes an instance, it cannot be rebuilt afterward.
-// billing should be prorated to the day or something like that.
-// This method requires apikey_allow_cancel to be checked on the account.
-func (c *Client) CancelServer(id int) error {
-
-	if err := c.post("cloud/server/cancel/"+strconv.Itoa(id), nil, nil); err != nil {
-		return err
-	}
-
-	return nil
-}
-
+// BuildServerRequest is a set of parameters for a server re-building call.
 type BuildServerRequest struct {
 	Location      int    `url:"location,omitempty"`
 	Image         int    `url:"image,omitempty"`
@@ -166,7 +112,6 @@ func (c *Client) BuildServer(id int, r *BuildServerRequest) (b ServerBuild, err 
 }
 
 // DeleteServer external method on Client to destroy an instance.
-// This method requires apikey_allow_delete to be checked on the account
 func (c *Client) DeleteServer(id int, cancelBilling bool) error {
 	values := url.Values{}
 	if cancelBilling {

@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -106,29 +105,6 @@ func (c *Client) post(path string, values []byte, data interface{}) error {
 	return c.do(req, data)
 }
 
-// put internal method on Client struct for providing the HTTP PUT call
-func (c *Client) put(path string, values []byte, data interface{}) error {
-	c.debugLog("PUT data for %s: %s", path, string(values))
-
-	req, err := c.newRequest("PUT", path, bytes.NewBuffer(values))
-
-	if err != nil {
-		return err
-	}
-	return c.do(req, data)
-}
-
-// patch internal method on Client struct for providing the HTTP PATCH call
-func (c *Client) patch(path string, values url.Values, data interface{}) error {
-	req, err := c.newRequest(
-		"PATCH", path, strings.NewReader(values.Encode()),
-	)
-	if err != nil {
-		return err
-	}
-	return c.do(req, data)
-}
-
 // delete internal method on Client struct for providing the HTTP DELETE call
 func (c *Client) delete(path string, values url.Values, data interface{}) error {
 	req, err := c.newRequest("DELETE", path, nil)
@@ -142,7 +118,6 @@ func (c *Client) delete(path string, values url.Values, data interface{}) error 
 // newRequest internal method on Client struct to be wrapped inside the above http method
 // named functions for doing the actual work of the get/post/put/patch/delete methods
 func (c *Client) newRequest(method string, path string, body io.Reader) (*http.Request, error) {
-
 	relPath, err := url.Parse(apiKeyPath(path, c.apiKey))
 
 	if err != nil {
@@ -163,9 +138,10 @@ func (c *Client) newRequest(method string, path string, body io.Reader) (*http.R
 
 	c.debugLog("making a %s request to %s", method, url)
 	return req, nil
-
 }
 
+// apiResponse is a message returned by the API that is used both for successful
+// responses and for some error responses.
 type apiResponse struct {
 	Result  string `json:"result"`
 	Message string `json:"message"`
@@ -181,7 +157,7 @@ func (c *Client) do(req *http.Request, data any) error {
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}

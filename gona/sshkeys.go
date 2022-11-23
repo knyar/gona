@@ -15,13 +15,10 @@ type SSHKey struct {
 
 // GetSSHKeys as in many keys
 func (c *Client) GetSSHKeys() (keys []SSHKey, err error) {
-
 	var sshkeyList []SSHKey
-
 	if err := c.get("account/ssh_keys", &sshkeyList); err != nil {
 		return nil, err
 	}
-
 	return sshkeyList, nil
 }
 

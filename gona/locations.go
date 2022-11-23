@@ -1,6 +1,6 @@
 package gona
 
-// Location is a struct for storing the id and name of a location
+// Location is an API response message identifyin a particular location.
 type Location struct {
 	ID        int    `json:"id"`
 	Name      string `json:"name"`
