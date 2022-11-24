@@ -1,4 +1,4 @@
-module github.com/knyar/gona
+module github.com/netactuate/gona
 
 go 1.19
 
